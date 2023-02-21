@@ -38,7 +38,7 @@ class Sha256 {
 
         switch (opt.msgFormat) {
             default: // default is to convert string to UTF-8, as SHA only deals with byte-streams
-            case 'string':   msg = utf8Encode(msg);      console.log(String+":"+msg);   break;
+            case 'string':   msg = utf8Encode(msg);      break;
           
             case 'hex-bytes':msg = hexBytesToString(msg); break; // mostly for running tests
         }
@@ -62,22 +62,17 @@ class Sha256 {
         // PREPROCESSING [§6.2.1]
 
         msg += String.fromCharCode(0x80); 
-        console.log(":"+msg);
+     
          // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
 
         // convert string msg into 512-bit blocks (array of 16 32-bit integers) [§5.2.1]
         const l = msg.length/4 + 2; // length (in 32-bit integers) of msg + ‘1’ + appended length
-        console.log(":"+l);
         const N = Math.ceil(l/16);  // number of 16-integer (512-bit) blocks required to hold 'l' ints
-        console.log(":"+N);
         const M = new Array(N);     // message M is N×16 array of 32-bit integers
-        console.log(":"+M);
 
         for (let i=0; i<N; i++) {
             M[i] = new Array(16);
-            console.log(":"+M[i]);
             for (let j=0; j<16; j++) { // encode 4 chars per integer (64 per block), big-endian encoding
-                console.log(j+":"+M[i][j])
                 M[i][j] = (msg.charCodeAt(i*64+j*4+0)<<24) | (msg.charCodeAt(i*64+j*4+1)<<16)
                         | (msg.charCodeAt(i*64+j*4+2)<< 8) | (msg.charCodeAt(i*64+j*4+3)<< 0);
             } // note running off the end of msg is ok 'cos bitwise ops on NaN return 0
@@ -89,7 +84,6 @@ class Sha256 {
         const lenLo = ((msg.length-1)*8) >>> 0;
         M[N-1][14] = Math.floor(lenHi);
         M[N-1][15] = lenLo;
-        console.log(":"+M);
 
 
         // HASH COMPUTATION [§6.2.2]
@@ -98,9 +92,9 @@ class Sha256 {
             const W = new Array(64);
 
             // 1 - prepare message schedule 'W'
-            for (let t=0;  t<16; t++) {W[t] = M[i][t];console.log(t+":"+W)}
+            for (let t=0;  t<16; t++) {W[t] = M[i][t];}
             for (let t=16; t<64; t++) {
-                W[t] = (Sha256.σ1(W[t-2]) + W[t-7] + Sha256.σ0(W[t-15]) + W[t-16]) >>> 0;console.log(t+":"+W)
+                W[t] = (Sha256.σ1(W[t-2]) + W[t-7] + Sha256.σ0(W[t-15]) + W[t-16]) >>> 0;
             }
 
             // 2 - initialise working variables a, b, c, d, e, f, g, h with previous hash value
@@ -117,7 +111,7 @@ class Sha256 {
                 d = c;
                 c = b;
                 b = a;
-                a = (T1 + T2) >>> 0;console.log(":"+T1)
+                a = (T1 + T2) >>> 0;
             }
             
             // 4 - compute the new intermediate hash value (note '>>> 0' for 'addition modulo 2^32')
@@ -136,7 +130,6 @@ class Sha256 {
 
         // concatenate H0..H7, with separator if required
         const separator = opt.outFormat=='hex-w' ? ' ' : '';
-        console.log(H)
         return H.join(separator);
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
@@ -180,8 +173,21 @@ class Sha256 {
     
 
 }
-const hash = Sha256.hash('vivek'); 
+
+document.getElementById("calculate").addEventListener("click",()=>{
+    const str=document.getElementById("string").value;
+    if(str.length==0){
+        alert("Enter String")
+        document.getElementById("result").value=""
+    }
+    else{
+    console.log(str)
+    const hash = Sha256.hash(str) 
+    document.getElementById("result").value=hash
       console.log(hash)
+    }
+  })
+
 
 
 // document.getElementsByTagName("input").value=hash
