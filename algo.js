@@ -1,35 +1,6 @@
-
-/**
- * SHA-256 hash function reference implementation.
- *
- * This is an annotated direct implementation of FIPS 180-4, without any optimisations. It is
- * intended to aid understanding of the algorithm rather than for production use.
- *
- * While it could be used where performance is not critical, I would recommend using the ‘Web
- * Cryptography API’ (developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest) for the browser,
- * or the ‘crypto’ library (nodejs.org/api/crypto.html#crypto_class_hash) in Node.js.
- *
- * See csrc.nist.gov/groups/ST/toolkit/secure_hashing.html
- *     csrc.nist.gov/groups/ST/toolkit/examples.html
- */
-
 class Sha256 {
 
-    /**
-     * Generates SHA-256 hash of string.
-     *
-     * @param   {string} msg - (Unicode) string to be hashed.
-     * @param   {Object} [options]
-     * @param   {string} [options.msgFormat=string] - Message format: 'string' for JavaScript string
-     *   (gets converted to UTF-8 for hashing); 'hex-bytes' for string of hex bytes ('616263' ≡ 'abc') .
-     * @param   {string} [options.outFormat=hex] - Output format: 'hex' for string of contiguous
-     *   hex bytes; 'hex-w' for grouping hex bytes into groups of (4 byte / 8 character) words.
-     * @returns {string} Hash of msg as hex character string.
-     *
-     * @example
-     *   import Sha256 from './sha256.js';
-     *   const hash = Sha256.hash('abc'); // 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
-     */
+  
     static hash(msg, options) {
         const defaults = { msgFormat: 'string', outFormat: 'hex' };
         const opt = Object.assign(defaults, options);
@@ -44,7 +15,7 @@ class Sha256 {
         }
         
 
-        // constants [§4.2.2]
+        // constants 64 which is get from cube root of first 64 prime number and than convert it in binary than hexa
         const K = [
             0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
             0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -61,7 +32,7 @@ class Sha256 {
 
         // PREPROCESSING [§6.2.1]
 
-        msg += String.fromCharCode(0x80); 
+        msg += String.fromCharCode(0x80); //append 1 after msg after that fill zero
      
          // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
 
@@ -70,6 +41,8 @@ class Sha256 {
         const N = Math.ceil(l/16);  // number of 16-integer (512-bit) blocks required to hold 'l' ints
         const M = new Array(N);     // message M is N×16 array of 32-bit integers
 
+        //in this loop our input value hashed and fill i n the blocks remainiig block is filled with the 0
+        //make 16 array from 0-15
         for (let i=0; i<N; i++) {
             M[i] = new Array(16);
             for (let j=0; j<16; j++) { // encode 4 chars per integer (64 per block), big-endian encoding
@@ -123,12 +96,17 @@ class Sha256 {
             H[5] = (H[5]+f) >>> 0;
             H[6] = (H[6]+g) >>> 0;
             H[7] = (H[7]+h) >>> 0;
+            
         }
 
+        for(let i=0;i<8;i++) console.log(H[i])
         // convert H0..H7 to hex strings (with leading zeros)
+        //this function convert the decimal to hexadecimal 
         for (let h=0; h<H.length; h++) H[h] = ('00000000'+H[h].toString(16)).slice(-8);
+        for(let i=0;i<8;i++) console.log(H[i])
 
-        // concatenate H0..H7, with separator if required
+        // concatenate H0..H7, with separator if 
+        //this function join them in one string and return it
         const separator = opt.outFormat=='hex-w' ? ' ' : '';
         return H.join(separator);
 
@@ -151,29 +129,28 @@ class Sha256 {
 
 
 
-    /**
-     * Rotates right (circular right shift) value x by n positions [§3.2.4].
-     * @private
-     */
+// Rotates right (circular right shift) value x by n positions 
+    
     static ROTR(n, x) {
         return (x >>> n) | (x << (32-n));
     }
 
 
-    /**
-     * Logical functions [§4.1.2].
-     * @private
-     */
+     //Logical functions [§4.1.2].
+     
+    //in this function initially calls which is rotate the value so manytimes ass given in code
     static Σ0(x) { return Sha256.ROTR(2,  x) ^ Sha256.ROTR(13, x) ^ Sha256.ROTR(22, x); }
     static Σ1(x) { return Sha256.ROTR(6,  x) ^ Sha256.ROTR(11, x) ^ Sha256.ROTR(25, x); }
+    //in this function also rotate plus shif are performed
     static σ0(x) { return Sha256.ROTR(7,  x) ^ Sha256.ROTR(18, x) ^ (x>>>3);  }
     static σ1(x) { return Sha256.ROTR(17, x) ^ Sha256.ROTR(19, x) ^ (x>>>10); }
-    static Ch(x, y, z)  { return (x & y) ^ (~x & z); }          // 'choice'
-    static Maj(x, y, z) { return (x & y) ^ (x & z) ^ (y & z); } // 'majority'
+    static Ch(x, y, z)  { return (x & y) ^ (~x & z); }          // 'choice function which is help to choice from x,y,z'
+    static Maj(x, y, z) { return (x & y) ^ (x & z) ^ (y & z); } // 'majority function which is put the value which is major from x,y,z'
     
 
 }
 
+//this is for html logic call and return result
 document.getElementById("calculate").addEventListener("click",()=>{
     const str=document.getElementById("string").value;
     if(str.length==0){
@@ -189,9 +166,3 @@ document.getElementById("calculate").addEventListener("click",()=>{
   })
 
 
-
-// document.getElementsByTagName("input").value=hash
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
-
-// export default Sha256;
