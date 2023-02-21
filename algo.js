@@ -74,6 +74,7 @@ class Sha256 {
             let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
 
             // 3 - main loop (note '>>> 0' for 'addition modulo 2^32')
+            //compression function 
             for (let t=0; t<64; t++) {
                 const T1 = h + Sha256.Σ1(e) + Sha256.Ch(e, f, g) + K[t] + W[t];
                 const T2 =     Sha256.Σ0(a) + Sha256.Maj(a, b, c);
@@ -99,11 +100,11 @@ class Sha256 {
             
         }
 
-        for(let i=0;i<8;i++) console.log(H[i])
+        // for(let i=0;i<8;i++) console.log(H[i])
         // convert H0..H7 to hex strings (with leading zeros)
         //this function convert the decimal to hexadecimal 
         for (let h=0; h<H.length; h++) H[h] = ('00000000'+H[h].toString(16)).slice(-8);
-        for(let i=0;i<8;i++) console.log(H[i])
+        // for(let i=0;i<8;i++) console.log(H[i])
 
         // concatenate H0..H7, with separator if 
         //this function join them in one string and return it
